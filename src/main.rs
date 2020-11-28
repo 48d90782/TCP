@@ -4,11 +4,12 @@ use std::io;
 
 fn main() -> io::Result<()> {
     let iface = Iface::new("tun0", Mode::Tun)?;
-    eprintln!("Iface {:?}", iface.name());
-    let name = iface.name();
+    println!("Iface name: {}", iface.name());
     let mut buf = [0; 1504]; // 1500 + 4 bytes header
 
-    iface.recv(&mut buf)?;
+    let nbytes = iface.recv(&mut buf)?;
+    println!("bytes read: {}", nbytes);
+    println!("data: {:?}", &buf[..]);
     Ok(())
 }
 
