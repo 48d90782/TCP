@@ -6,7 +6,7 @@ fn main() -> io::Result<()> {
     let iface = Iface::new("tun0", Mode::Tun)?;
     eprintln!("Iface {:?}", iface.name());
     let name = iface.name();
-    let mut buf = vec![0; 1504]; // 1500 + 4 bytes header
+    let mut buf = [0; 1504]; // 1500 + 4 bytes header
 
     iface.recv(&mut buf)?;
     Ok(())
