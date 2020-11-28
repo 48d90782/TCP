@@ -7,9 +7,12 @@ fn main() -> io::Result<()> {
     println!("Iface name: {}", iface.name());
     let mut buf = [0; 1504]; // 1500 + 4 bytes header
 
-    let nbytes = iface.recv(&mut buf)?;
-    println!("bytes read: {}", nbytes);
-    println!("data: {:?}", &buf[..]);
+    loop {
+        let nbytes = iface.recv(&mut buf)?;
+        println!("bytes read: {}", nbytes);
+        println!("data: {:?}", &buf[..=nbytes]);
+    }
+
     Ok(())
 }
 
