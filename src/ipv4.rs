@@ -1,4 +1,5 @@
 use crate::protocol::Protocol;
+use crate::errors::TCPError;
 
 pub struct IPv4Header<'a> {
     // raw_data is raw protocol frame
@@ -7,6 +8,8 @@ pub struct IPv4Header<'a> {
     version: u8,
     // Internet header length
     ihl: u8,
+    //
+    dscp: u8,
 }
 
 ///  3.2 Frame format:
@@ -21,6 +24,7 @@ impl<'a> IPv4Header<'a> {
             raw_data: data,
             version: 0,
             ihl: 0,
+            dscp: 0,
         }
     }
 
@@ -36,9 +40,19 @@ impl<'a> IPv4Header<'a> {
     // The minimum value for this field is 5,[29] which indicates a length of 5 × 32 bits = 160 bits = 20 bytes.
     // As a 4-bit field, the maximum value is 15,
     // this means that the maximum size of the IPv4 header is 15 × 32 bits, or 480 bits = 60 bytes.
-    pub fn ihl(&mut self) -> u8 {
+    pub fn ihl(&mut self) -> Result<u8, TCPError> {
         self.ihl = self.raw_data[0] & 0b0000_1111;
-        self.ihl
+        if self.ihl < 5 {
+            return Err(TCPError::IHLError { cause: "less than 20 bytes".into() });
+        }
+        Ok(self.ihl)
+    }
+
+    // Differentiated Services Code Point (DSCP)
+    // https://en.wikipedia.org/wiki/IPv4#DSCP
+    pub fn dscp(&mut self) -> u8 {
+        self.dscp = self.raw_data[1] >> 2;
+        self.dscp
     }
 
     // 9-th octet (byte)
