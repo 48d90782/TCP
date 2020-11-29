@@ -10,6 +10,9 @@ pub struct IPv4Header<'a> {
     ihl: u8,
     //
     dscp: u8,
+    // Explicit Congestion Notification
+    ecn: u8,
+    total_len: u16,
 }
 
 ///  3.2 Frame format:
@@ -25,6 +28,8 @@ impl<'a> IPv4Header<'a> {
             version: 0,
             ihl: 0,
             dscp: 0,
+            ecn: 0,
+            total_len: 0,
         }
     }
 
@@ -53,6 +58,12 @@ impl<'a> IPv4Header<'a> {
     pub fn dscp(&mut self) -> u8 {
         self.dscp = self.raw_data[1] >> 2;
         self.dscp
+    }
+
+    //
+    pub fn ecn(&mut self) -> u8 {
+        self.ecn = self.raw_data[1] & 0b0000_0011;
+        self.ecn
     }
 
     // 9-th octet (byte)
