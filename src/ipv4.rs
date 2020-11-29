@@ -12,7 +12,10 @@ pub struct IPv4Header<'a> {
     dscp: u8,
     // Explicit Congestion Notification
     ecn: u8,
+    // total len of the frame including header and data
     total_len: u16,
+    // https://tools.ietf.org/html/rfc6864
+    id: u16,
 }
 
 ///  3.2 Frame format:
@@ -30,6 +33,7 @@ impl<'a> IPv4Header<'a> {
             dscp: 0,
             ecn: 0,
             total_len: 0,
+            id: 0,
         }
     }
 
@@ -70,6 +74,12 @@ impl<'a> IPv4Header<'a> {
     pub fn total_len(&mut self) -> u16 {
         self.total_len = u16::from_be_bytes([self.raw_data[2], self.raw_data[3]]);
         self.total_len
+    }
+
+    // 4, 5 octets
+    pub fn ident(&mut self) -> u16 {
+        self.id = u16::from_be_bytes([self.raw_data[4], self.raw_data[5]]);
+        self.id
     }
 
     // 9-th octet (byte)

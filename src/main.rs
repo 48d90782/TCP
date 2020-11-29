@@ -17,8 +17,9 @@ fn main() -> io::Result<()> {
 
         let mut header = IPv4Header::new(&buf[4..]);
 
-        println!("TCP version: {}, IHL: {}, DSCP: {}, ECN: {}, bytes: {}",
-                 header.version(), header.ihl()?, header.dscp(), header.ecn(), header.total_len());
+        println!("TCP version: {}, IHL: {}, DSCP: {}, ECN: {}, bytes: {}, Ident: {}",
+                 header.version(), header.ihl()?, header.dscp(), header.ecn(), header.total_len(),
+                 header.ident());
         //println!("Protocol: {}", header.protocol());
     }
 }
