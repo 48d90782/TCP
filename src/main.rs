@@ -19,11 +19,11 @@ fn main() -> io::Result<()> {
 
 
         let flags = u16::from_be_bytes([buf[0], buf[1]]);
-        println!("flags: {}", flags);
+        println!("flags: {:x}", flags);
         let proto = u16::from_be_bytes([buf[2], buf[3]]);
-        println!("proto: {}", proto);
+        println!("proto: {:x}", proto);
 
-        println!("data: {:?}", &buf[..=nbytes]);
+        println!("data (without 4 bytes header): {:x?}", &buf[4..nbytes]);
     }
 
     Ok(())
