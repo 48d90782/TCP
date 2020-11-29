@@ -66,6 +66,12 @@ impl<'a> IPv4Header<'a> {
         self.ecn
     }
 
+    // 2, 3 octets
+    pub fn total_len(&mut self) -> u16 {
+        self.total_len = u16::from_be_bytes([self.raw_data[2], self.raw_data[3]]);
+        self.total_len
+    }
+
     // 9-th octet (byte)
     // Protocol number
     // https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers
