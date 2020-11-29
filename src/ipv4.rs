@@ -1,14 +1,35 @@
 use crate::protocol::Protocol;
 
 pub struct IPv4Header<'a> {
-    raw_data: &'a [u8]
+    raw_data: &'a [u8],
+    version: u8,
+    ihl: u8,
 }
 
+///  3.2 Frame format:
+//   If flag IFF_NO_PI is not set each frame format is:
+//      Flags [2 bytes]
+//      Proto [2 bytes]
+//      Raw Protocol(IP, IPv6, etc) frame.
 impl<'a> IPv4Header<'a> {
     pub fn new(data: &'a [u8]) -> Self {
         IPv4Header {
-            raw_data: data
+            raw_data: data,
+            version: 0,
+            ihl: 0,
         }
+    }
+
+    // 0-th octet
+    // lower 4 bits
+    pub fn version(&self) -> u8 {
+        let byte = self.raw_data[0];
+        byte >> 4
+    }
+
+    pub fn ihl(&self) -> u8 {
+        let byte = self.raw_data[0];
+        byte & 0xF0
     }
 
     pub fn flags(&self) -> u16 {
