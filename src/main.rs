@@ -16,10 +16,11 @@ fn main() -> io::Result<()> {
         let nbytes = iface.recv(&mut buf)?;
         println!("bytes read: {}", nbytes);
 
-        let header = IPv4Header::new(&buf[4..]);
+        let mut header = IPv4Header::new(&buf[4..]);
 
         println!("TCP version: {}", header.version());
         println!("IHL: {}", header.ihl());
+        println!("Protocol: {}", header.protocol());
 
         // println!("flags: {:x}", header.flags());
 
