@@ -18,6 +18,8 @@ pub struct IPv4Header<'a> {
     id: u16,
     // flags
     flags: u8,
+    //
+    fragment_offset: u16,
 }
 
 ///  3.2 Frame format:
@@ -37,6 +39,7 @@ impl<'a> IPv4Header<'a> {
             total_len: 0,
             id: 0,
             flags: 0,
+            fragment_offset: 0,
         }
     }
 
@@ -93,10 +96,6 @@ impl<'a> IPv4Header<'a> {
     pub fn dont_fragment(&mut self) -> bool {
         self.flags = self.raw_data[6] >> 5;
         (self.flags & 0b010) > 0
-        // println!("flag0: {}", self.flags & 0b100);
-        // println!("flag1: {}", self.flags & 0b010);
-        // println!("flag2: {}", self.flags & 0b001);
-        // self.flags
     }
 
     // bit 0: Reserved; must be zero
@@ -105,6 +104,15 @@ impl<'a> IPv4Header<'a> {
     pub fn more_fragments(&mut self) -> bool {
         self.flags = self.raw_data[6] >> 5;
         (self.flags & 0b100) > 0
+    }
+
+    // octet number 6 and 7
+    // we need lower 5 bits from 6-th octet and whole 7th octet
+    // total len 13 bits
+    pub fn fragment_offset(&mut self) -> u16 {
+        let num6 = self.raw_data[6] & 0b0001_1111;
+        self.fragment_offset = u16::from_be_bytes([num6, self.raw_data[7]]);
+        self.fragment_offset
     }
 
     // 9-th octet (byte)

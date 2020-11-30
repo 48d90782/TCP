@@ -18,7 +18,7 @@ fn main() -> io::Result<()> {
         let mut header = IPv4Header::new(&buf[4..]);
 
         println!(
-            "TCP version: {}, IHL: {}, DSCP: {}, ECN: {}, bytes: {}, Ident: {}, DF: {}, F: {}",
+            "TCP version: {}, IHL: {}, DSCP: {}, ECN: {}, bytes: {}, Ident: {}, DF: {}, F: {}, Fragment offset: {}",
             header.version(),
             header.ihl()?,
             header.dscp(),
@@ -26,7 +26,8 @@ fn main() -> io::Result<()> {
             header.total_len(),
             header.ident(),
             header.dont_fragment(),
-            header.more_fragments()
+            header.more_fragments(),
+            header.fragment_offset(),
         );
         //println!("Protocol: {}", header.protocol());
     }
