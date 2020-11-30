@@ -16,6 +16,8 @@ pub struct IPv4Header<'a> {
     total_len: u16,
     // https://tools.ietf.org/html/rfc6864
     id: u16,
+    // flags
+    flags: u8,
 }
 
 ///  3.2 Frame format:
@@ -34,6 +36,7 @@ impl<'a> IPv4Header<'a> {
             ecn: 0,
             total_len: 0,
             id: 0,
+            flags: 0,
         }
     }
 
@@ -82,6 +85,26 @@ impl<'a> IPv4Header<'a> {
     pub fn ident(&mut self) -> u16 {
         self.id = u16::from_be_bytes([self.raw_data[4], self.raw_data[5]]);
         self.id
+    }
+
+    // bit 0: Reserved; must be zero
+    // bit 1: Don't Fragment (DF)
+    // bit 2: More Fragments (MF)
+    pub fn dont_fragment(&mut self) -> bool {
+        self.flags = self.raw_data[6] >> 5;
+        (self.flags & 0b010) > 0
+        // println!("flag0: {}", self.flags & 0b100);
+        // println!("flag1: {}", self.flags & 0b010);
+        // println!("flag2: {}", self.flags & 0b001);
+        // self.flags
+    }
+
+    // bit 0: Reserved; must be zero
+    // bit 1: Don't Fragment (DF)
+    // bit 2: More Fragments (MF)
+    pub fn fragment(&mut self) -> bool {
+        self.flags = self.raw_data[6] >> 5;
+        (self.flags & 0b100) > 0
     }
 
     // 9-th octet (byte)

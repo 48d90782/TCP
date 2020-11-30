@@ -1,10 +1,10 @@
+mod errors;
 mod ipv4;
 mod protocol;
-mod errors;
 
-use tun_tap::{Iface, Mode};
-use std::io;
 use crate::ipv4::IPv4Header;
+use std::io;
+use tun_tap::{Iface, Mode};
 
 fn main() -> io::Result<()> {
     // https://en.wikipedia.org/wiki/TUN/TAP
@@ -17,9 +17,17 @@ fn main() -> io::Result<()> {
 
         let mut header = IPv4Header::new(&buf[4..]);
 
-        println!("TCP version: {}, IHL: {}, DSCP: {}, ECN: {}, bytes: {}, Ident: {}",
-                 header.version(), header.ihl()?, header.dscp(), header.ecn(), header.total_len(),
-                 header.ident());
+        println!(
+            "TCP version: {}, IHL: {}, DSCP: {}, ECN: {}, bytes: {}, Ident: {}, DF: {}, F: {}",
+            header.version(),
+            header.ihl()?,
+            header.dscp(),
+            header.ecn(),
+            header.total_len(),
+            header.ident(),
+            header.dont_fragment(),
+            header.fragment()
+        );
         //println!("Protocol: {}", header.protocol());
     }
 }
