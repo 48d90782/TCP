@@ -102,7 +102,7 @@ impl<'a> IPv4Header<'a> {
     // bit 0: Reserved; must be zero
     // bit 1: Don't Fragment (DF)
     // bit 2: More Fragments (MF)
-    pub fn fragment(&mut self) -> bool {
+    pub fn more_fragments(&mut self) -> bool {
         self.flags = self.raw_data[6] >> 5;
         (self.flags & 0b100) > 0
     }

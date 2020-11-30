@@ -26,7 +26,7 @@ fn main() -> io::Result<()> {
             header.total_len(),
             header.ident(),
             header.dont_fragment(),
-            header.fragment()
+            header.more_fragments()
         );
         //println!("Protocol: {}", header.protocol());
     }
