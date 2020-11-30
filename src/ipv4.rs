@@ -20,6 +20,8 @@ pub struct IPv4Header<'a> {
     flags: u8,
     //
     fragment_offset: u16,
+    //
+    ttl: u8,
 }
 
 ///  3.2 Frame format:
@@ -40,6 +42,7 @@ impl<'a> IPv4Header<'a> {
             id: 0,
             flags: 0,
             fragment_offset: 0,
+            ttl: 0,
         }
     }
 
@@ -64,6 +67,30 @@ impl<'a> IPv4Header<'a> {
         }
         Ok(self.ihl)
     }
+
+    //       Bits 0-2:  Precedence.
+    //       Bit    3:  0 = Normal Delay,      1 = Low Delay.
+    //       Bits   4:  0 = Normal Throughput, 1 = High Throughput.
+    //       Bits   5:  0 = Normal Relibility, 1 = High Relibility.
+    //       Bit  6-7:  Reserved for Future Use.
+    //
+    //          0     1     2     3     4     5     6     7
+    //       +-----+-----+-----+-----+-----+-----+-----+-----+
+    //       |                 |     |     |     |     |     |
+    //       |   PRECEDENCE    |  D  |  T  |  R  |  0  |  0  |
+    //       |                 |     |     |     |     |     |
+    //       +-----+-----+-----+-----+-----+-----+-----+-----+
+
+    // Precedence
+    //
+    // 111 - Network Control
+    // 110 - Internetwork Control
+    // 101 - CRITIC/ECP
+    // 100 - Flash Override
+    // 011 - Flash
+    // 010 - Immediate
+    // 001 - Priority
+    // 000 - Routine
 
     // Differentiated Services Code Point (DSCP)
     // https://en.wikipedia.org/wiki/IPv4#DSCP
@@ -113,6 +140,11 @@ impl<'a> IPv4Header<'a> {
         let num6 = self.raw_data[6] & 0b0001_1111;
         self.fragment_offset = u16::from_be_bytes([num6, self.raw_data[7]]);
         self.fragment_offset
+    }
+
+    pub fn ttl(&mut self) -> u8 {
+        self.ttl = u8::from(self.raw_data[8]);
+        self.ttl
     }
 
     // 9-th octet (byte)
