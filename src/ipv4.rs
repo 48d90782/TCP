@@ -1,5 +1,5 @@
-use crate::protocol::Protocol;
 use crate::errors::TCPError;
+use crate::protocol::Protocol;
 
 pub struct IPv4Header<'a> {
     // raw_data is raw protocol frame
@@ -52,7 +52,9 @@ impl<'a> IPv4Header<'a> {
     pub fn ihl(&mut self) -> Result<u8, TCPError> {
         self.ihl = self.raw_data[0] & 0b0000_1111;
         if self.ihl < 5 {
-            return Err(TCPError::IHLError { cause: "less than 20 bytes".into() });
+            return Err(TCPError::IHLError {
+                cause: "less than 20 bytes".into(),
+            });
         }
         Ok(self.ihl)
     }
@@ -87,15 +89,9 @@ impl<'a> IPv4Header<'a> {
     // https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers
     pub fn protocol(&self) -> Protocol {
         match self.raw_data[9] {
-            1 => {
-                Protocol::ICMP
-            }
-            2 => {
-                Protocol::IGMP
-            }
-            17 => {
-                Protocol::UDP
-            }
+            1 => Protocol::ICMP,
+            2 => Protocol::IGMP,
+            17 => Protocol::UDP,
             number => {
                 println!("number is: {}", number);
                 Protocol::Unknown
