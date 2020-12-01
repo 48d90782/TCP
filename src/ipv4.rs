@@ -117,17 +117,21 @@ impl<'a> IPv4Header<'a> {
         self.id
     }
 
-    // bit 0: Reserved; must be zero
-    // bit 1: Don't Fragment (DF)
-    // bit 2: More Fragments (MF)
+    // Bit 0: reserved, must be zero
+    // Bit 1: (DF) 0 = May Fragment,  1 = Don't Fragment.
+    // Bit 2: (MF) 0 = Last Fragment, 1 = More Fragments.
+    //
+    // 0   1   2
+    // +---+---+---+
+    // |   | D | M |
+    // | 0 | F | F |
+    // +---+---+---+
     pub fn dont_fragment(&mut self) -> bool {
         self.flags = self.raw_data[6] >> 5;
         (self.flags & 0b010) > 0
     }
 
-    // bit 0: Reserved; must be zero
-    // bit 1: Don't Fragment (DF)
-    // bit 2: More Fragments (MF)
+    // flags
     pub fn more_fragments(&mut self) -> bool {
         self.flags = self.raw_data[6] >> 5;
         (self.flags & 0b100) > 0
@@ -161,4 +165,6 @@ impl<'a> IPv4Header<'a> {
             }
         }
     }
+
+    pub fn ip_header_checksum(&mut self) {}
 }
