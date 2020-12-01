@@ -18,7 +18,7 @@ fn main() -> io::Result<()> {
         let mut header = IPv4Header::new(&buf[4..]);
 
         println!(
-            "IP version: {}, IHL: {}, DSCP: {}, ECN: {}, bytes: {}, Ident: {}, DF: {}, F: {}, Fragment offset: {}, TTL: {}, Protocol: {}",
+            "IP version: {}, IHL: {}, DSCP: {}, ECN: {}, bytes: {}, Ident: {:x}, DF: {}, F: {}, Fragment offset: {}, TTL: {}, Protocol: {}, Checksum: {:x}",
             header.version(),
             header.ihl()?,
             header.dscp(),
@@ -30,6 +30,7 @@ fn main() -> io::Result<()> {
             header.fragment_offset(),
             header.ttl(),
             header.protocol(),
+            header.ip_header_checksum(),
         );
     }
 }

@@ -166,5 +166,8 @@ impl<'a> IPv4Header<'a> {
         }
     }
 
-    pub fn ip_header_checksum(&mut self) {}
+    // https://tools.ietf.org/html/rfc1071
+    pub fn ip_header_checksum(&mut self) -> u16 {
+        u16::from_be_bytes([self.raw_data[10], self.raw_data[11]])
+    }
 }
