@@ -1,5 +1,6 @@
 use crate::errors::TCPError;
 use crate::protocol::Protocol;
+use std::net::Ipv4Addr;
 
 pub struct IPv4Header<'a> {
     // raw_data is raw protocol frame
@@ -169,5 +170,31 @@ impl<'a> IPv4Header<'a> {
     // https://tools.ietf.org/html/rfc1071
     pub fn ip_header_checksum(&mut self) -> u16 {
         u16::from_be_bytes([self.raw_data[10], self.raw_data[11]])
+    }
+
+    pub fn source_address_raw(&self) -> &'a [u8] {
+        &self.raw_data[12..16]
+    }
+
+    pub fn destination_address_raw(&self) -> &'a [u8] {
+        &self.raw_data[16..20]
+    }
+
+    pub fn source_address(&mut self) -> Ipv4Addr {
+        Ipv4Addr::from([
+            self.raw_data[12],
+            self.raw_data[13],
+            self.raw_data[14],
+            self.raw_data[15],
+        ])
+    }
+
+    pub fn destination_address(&mut self) -> Ipv4Addr {
+        Ipv4Addr::from([
+            self.raw_data[16],
+            self.raw_data[17],
+            self.raw_data[18],
+            self.raw_data[19],
+        ])
     }
 }
