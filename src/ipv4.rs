@@ -194,16 +194,69 @@ impl<'a> IPv4Header<'a> {
             + u32::from(((self.raw_data[16] as u16) << 8) | self.raw_data[17] as u16)
             + u32::from(((self.raw_data[18] as u16) << 8) | self.raw_data[19] as u16);
 
-        let options = self.options();
+        // SECOND VARIANT
         // iterate over every 0..2..4..n..n*2 bytes
-        for i in 0..self.options.len() / 2 {
-            res += u32::from(u16::from_be_bytes([options[i * 2], options[i * 2 + 1]]));
+        // for i in 0..self.options.len() / 2 {
+        //     res += u32::from(u16::from_be_bytes([options[i * 2], options[i * 2 + 1]]));
+        // }
+
+        if self.ihl().unwrap() > 5 {
+            res += self
+                .options()
+                .chunks(2)
+                .map(|chunk| {
+                    if chunk.len() == 1 {
+                        u32::from(u16::from_be_bytes([chunk[0], 0]))
+                    } else {
+                        u32::from(u16::from_be_bytes([chunk[0], chunk[1]]))
+                    }
+                })
+                .sum::<u32>();
         }
 
         // (res & 0xFFFF) shrink res to 16 bits and add carry
         let carry = (res & 0xFFFF) + (res >> 16);
         // it may produce another carry, add it if exist
         !(((carry & 0xFFFF) + (carry >> 16)) as u16)
+    }
+
+    pub fn verify_checksum(&mut self) -> bool {
+        // calculate sum of all 16-bit words
+        let mut res = u32::from(((self.raw_data[0] as u16) << 8) | self.raw_data[1] as u16)
+            + u32::from(((self.raw_data[2] as u16) << 8) | self.raw_data[3] as u16)
+            + u32::from(((self.raw_data[4] as u16) << 8) | self.raw_data[5] as u16)
+            + u32::from(((self.raw_data[6] as u16) << 8) | self.raw_data[7] as u16)
+            + u32::from(((self.raw_data[8] as u16) << 8) | self.raw_data[9] as u16)
+            + u32::from(((self.raw_data[10] as u16) << 8) | self.raw_data[11] as u16)
+            + u32::from(((self.raw_data[12] as u16) << 8) | self.raw_data[13] as u16)
+            + u32::from(((self.raw_data[14] as u16) << 8) | self.raw_data[15] as u16)
+            + u32::from(((self.raw_data[16] as u16) << 8) | self.raw_data[17] as u16)
+            + u32::from(((self.raw_data[18] as u16) << 8) | self.raw_data[19] as u16);
+
+        // SECOND VARIANT
+        // iterate over every 0..2..4..n..n*2 bytes
+        // for i in 0..self.options.len() / 2 {
+        //     res += u32::from(u16::from_be_bytes([options[i * 2], options[i * 2 + 1]]));
+        // }
+
+        if self.ihl().unwrap() > 5 {
+            res += self
+                .options()
+                .chunks(2)
+                .map(|chunk| {
+                    if chunk.len() == 1 {
+                        u32::from(u16::from_be_bytes([chunk[0], 0]))
+                    } else {
+                        u32::from(u16::from_be_bytes([chunk[0], chunk[1]]))
+                    }
+                })
+                .sum::<u32>();
+        }
+
+        // (res & 0xFFFF) shrink res to 16 bits and add carry
+        let carry = (res & 0xFFFF) + (res >> 16);
+        // it may produce another carry, add it if exist
+        !(((carry & 0xFFFF) + (carry >> 16)) as u16) == 0
     }
 
     pub fn options(&mut self) -> &'a [u8] {

@@ -18,7 +18,7 @@ fn main() -> io::Result<()> {
         let mut header = IPv4Header::new(&buf[4..]);
 
         println!(
-            "IP version: {}, IHL: {}, DSCP: {}, ECN: {}, bytes: {}, Ident: {:x}, DF: {}, F: {}, Fragment offset: {}, TTL: {}, Protocol: {}, CRC: {:x}, Verified CRC: {:x}, {} -> {}",
+            "IP version: {}, IHL: {}, DSCP: {}, ECN: {}, bytes: {}, Ident: {:x}, DF: {}, F: {}, Fragment offset: {}, TTL: {}, Protocol: {}, CRC: {:x}, Verified CRC: {:x}, CRC Correct: {}, {} -> {}",
             header.version(),
             header.ihl()?,
             header.dscp(),
@@ -32,6 +32,7 @@ fn main() -> io::Result<()> {
             header.protocol(),
             header.ip_header_checksum(),
             header.calculate_checksum(),
+            header.verify_checksum(),
             header.source_address(),
             header.destination_address()
         );
