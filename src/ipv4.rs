@@ -188,7 +188,7 @@ impl<'a> IPv4Header<'a> {
             + u32::from(((self.raw_data[4] as u16) << 8) | self.raw_data[5] as u16)
             + u32::from(((self.raw_data[6] as u16) << 8) | self.raw_data[7] as u16)
             + u32::from(((self.raw_data[8] as u16) << 8) | self.raw_data[9] as u16)
-            + 0
+            + 0 // because we calculating checksum, not verifying
             + u32::from(((self.raw_data[12] as u16) << 8) | self.raw_data[13] as u16)
             + u32::from(((self.raw_data[14] as u16) << 8) | self.raw_data[15] as u16)
             + u32::from(((self.raw_data[16] as u16) << 8) | self.raw_data[17] as u16)
