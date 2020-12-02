@@ -24,6 +24,8 @@ pub struct IPv4Header<'a> {
     fragment_offset: u16,
     //
     ttl: u8,
+    //
+    options: &'a [u8],
 }
 
 ///  3.2 Frame format:
@@ -34,8 +36,9 @@ pub struct IPv4Header<'a> {
 //  https://en.wikipedia.org/wiki/EtherType
 impl<'a> IPv4Header<'a> {
     pub fn new(data: &'a [u8]) -> Self {
+        let total_len = u16::from_be_bytes([data[2], data[3]]);
         IPv4Header {
-            raw_data: data,
+            raw_data: &data[..total_len as usize],
             version: 0,
             ihl: 0,
             dscp: 0,
@@ -45,6 +48,7 @@ impl<'a> IPv4Header<'a> {
             flags: 0,
             fragment_offset: 0,
             ttl: 0,
+            options: &[],
         }
     }
 
@@ -66,6 +70,10 @@ impl<'a> IPv4Header<'a> {
             return Err(TCPError::IHLError {
                 cause: "less than 20 bytes".into(),
             });
+        }
+        // if IHL > 5 than we have options
+        if self.ihl > 5 {
+            self.options = &self.raw_data[20..];
         }
         Ok(self.ihl)
     }
@@ -175,7 +183,7 @@ impl<'a> IPv4Header<'a> {
 
     pub fn calculate_checksum(&mut self) -> u16 {
         // calculate sum of all 16-bit words
-        let res = u32::from(((self.raw_data[0] as u16) << 8) | self.raw_data[1] as u16)
+        let mut res = u32::from(((self.raw_data[0] as u16) << 8) | self.raw_data[1] as u16)
             + u32::from(((self.raw_data[2] as u16) << 8) | self.raw_data[3] as u16)
             + u32::from(((self.raw_data[4] as u16) << 8) | self.raw_data[5] as u16)
             + u32::from(((self.raw_data[6] as u16) << 8) | self.raw_data[7] as u16)
@@ -186,10 +194,20 @@ impl<'a> IPv4Header<'a> {
             + u32::from(((self.raw_data[16] as u16) << 8) | self.raw_data[17] as u16)
             + u32::from(((self.raw_data[18] as u16) << 8) | self.raw_data[19] as u16);
 
+        let options = self.options();
+        // iterate over every 0..2..4..n..n*2 bytes
+        for i in 0..self.options.len() / 2 {
+            res += u32::from(u16::from_be_bytes([options[i * 2], options[i * 2 + 1]]));
+        }
+
         // (res & 0xFFFF) shrink res to 16 bits and add carry
         let carry = (res & 0xFFFF) + (res >> 16);
         // it may produce another carry, add it if exist
         !(((carry & 0xFFFF) + (carry >> 16)) as u16)
+    }
+
+    pub fn options(&mut self) -> &'a [u8] {
+        &self.raw_data[20..]
     }
 
     pub fn source_address_raw(&self) -> &'a [u8] {
