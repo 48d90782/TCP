@@ -174,6 +174,7 @@ impl<'a> IPv4Header<'a> {
     }
 
     pub fn calculate_checksum(&mut self) -> u16 {
+        // calculate sum of all 16-bit words
         let res = u32::from(((self.raw_data[0] as u16) << 8) | self.raw_data[1] as u16)
             + u32::from(((self.raw_data[2] as u16) << 8) | self.raw_data[3] as u16)
             + u32::from(((self.raw_data[4] as u16) << 8) | self.raw_data[5] as u16)
@@ -185,7 +186,9 @@ impl<'a> IPv4Header<'a> {
             + u32::from(((self.raw_data[16] as u16) << 8) | self.raw_data[17] as u16)
             + u32::from(((self.raw_data[18] as u16) << 8) | self.raw_data[19] as u16);
 
+        // (res & 0xFFFF) shrink res to 16 bits and add carry
         let carry = (res & 0xFFFF) + (res >> 16);
+        // it may produce another carry, add it if exist
         !(((carry & 0xFFFF) + (carry >> 16)) as u16)
     }
 
