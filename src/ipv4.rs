@@ -168,6 +168,7 @@ impl<'a> IPv4Header<'a> {
         match self.raw_data[9] {
             1 => Protocol::ICMP,
             2 => Protocol::IGMP,
+            6 => Protocol::TCP,
             17 => Protocol::UDP,
             number => {
                 println!("number is: {}", number);
@@ -183,35 +184,10 @@ impl<'a> IPv4Header<'a> {
 
     pub fn calculate_checksum(&mut self) -> u16 {
         // calculate sum of all 16-bit words
-        let mut res = u32::from(((self.raw_data[0] as u16) << 8) | self.raw_data[1] as u16)
-            + u32::from(((self.raw_data[2] as u16) << 8) | self.raw_data[3] as u16)
-            + u32::from(((self.raw_data[4] as u16) << 8) | self.raw_data[5] as u16)
-            + u32::from(((self.raw_data[6] as u16) << 8) | self.raw_data[7] as u16)
-            + u32::from(((self.raw_data[8] as u16) << 8) | self.raw_data[9] as u16)
-            + 0 // because we calculating checksum, not verifying
-            + u32::from(((self.raw_data[12] as u16) << 8) | self.raw_data[13] as u16)
-            + u32::from(((self.raw_data[14] as u16) << 8) | self.raw_data[15] as u16)
-            + u32::from(((self.raw_data[16] as u16) << 8) | self.raw_data[17] as u16)
-            + u32::from(((self.raw_data[18] as u16) << 8) | self.raw_data[19] as u16);
-
-        // SECOND VARIANT
-        // iterate over every 0..2..4..n..n*2 bytes
-        // for i in 0..self.options.len() / 2 {
-        //     res += u32::from(u16::from_be_bytes([options[i * 2], options[i * 2 + 1]]));
-        // }
+        let mut res = self.header_fields_sum(false);
 
         if self.ihl().unwrap() > 5 {
-            res += self
-                .options()
-                .chunks(2)
-                .map(|chunk| {
-                    if chunk.len() == 1 {
-                        u32::from(u16::from_be_bytes([chunk[0], 0]))
-                    } else {
-                        u32::from(u16::from_be_bytes([chunk[0], chunk[1]]))
-                    }
-                })
-                .sum::<u32>();
+            res += self.options_sum()
         }
 
         // (res & 0xFFFF) shrink res to 16 bits and add carry
@@ -222,35 +198,10 @@ impl<'a> IPv4Header<'a> {
 
     pub fn verify_checksum(&mut self) -> bool {
         // calculate sum of all 16-bit words
-        let mut res = u32::from(((self.raw_data[0] as u16) << 8) | self.raw_data[1] as u16)
-            + u32::from(((self.raw_data[2] as u16) << 8) | self.raw_data[3] as u16)
-            + u32::from(((self.raw_data[4] as u16) << 8) | self.raw_data[5] as u16)
-            + u32::from(((self.raw_data[6] as u16) << 8) | self.raw_data[7] as u16)
-            + u32::from(((self.raw_data[8] as u16) << 8) | self.raw_data[9] as u16)
-            + u32::from(((self.raw_data[10] as u16) << 8) | self.raw_data[11] as u16)
-            + u32::from(((self.raw_data[12] as u16) << 8) | self.raw_data[13] as u16)
-            + u32::from(((self.raw_data[14] as u16) << 8) | self.raw_data[15] as u16)
-            + u32::from(((self.raw_data[16] as u16) << 8) | self.raw_data[17] as u16)
-            + u32::from(((self.raw_data[18] as u16) << 8) | self.raw_data[19] as u16);
-
-        // SECOND VARIANT
-        // iterate over every 0..2..4..n..n*2 bytes
-        // for i in 0..self.options.len() / 2 {
-        //     res += u32::from(u16::from_be_bytes([options[i * 2], options[i * 2 + 1]]));
-        // }
+        let mut res = self.header_fields_sum(true);
 
         if self.ihl().unwrap() > 5 {
-            res += self
-                .options()
-                .chunks(2)
-                .map(|chunk| {
-                    if chunk.len() == 1 {
-                        u32::from(u16::from_be_bytes([chunk[0], 0]))
-                    } else {
-                        u32::from(u16::from_be_bytes([chunk[0], chunk[1]]))
-                    }
-                })
-                .sum::<u32>();
+            res += self.options_sum()
         }
 
         // (res & 0xFFFF) shrink res to 16 bits and add carry
@@ -261,6 +212,41 @@ impl<'a> IPv4Header<'a> {
 
     pub fn options(&mut self) -> &'a [u8] {
         &self.raw_data[20..]
+    }
+
+    fn header_fields_sum(&mut self, verify: bool) -> u32 {
+        let mut res = u32::from(((self.raw_data[0] as u16) << 8) | self.raw_data[1] as u16)
+            + u32::from(((self.raw_data[2] as u16) << 8) | self.raw_data[3] as u16)
+            + u32::from(((self.raw_data[4] as u16) << 8) | self.raw_data[5] as u16)
+            + u32::from(((self.raw_data[6] as u16) << 8) | self.raw_data[7] as u16)
+            + u32::from(((self.raw_data[8] as u16) << 8) | self.raw_data[9] as u16)
+            + u32::from(((self.raw_data[12] as u16) << 8) | self.raw_data[13] as u16)
+            + u32::from(((self.raw_data[14] as u16) << 8) | self.raw_data[15] as u16)
+            + u32::from(((self.raw_data[16] as u16) << 8) | self.raw_data[17] as u16)
+            + u32::from(((self.raw_data[18] as u16) << 8) | self.raw_data[19] as u16);
+        if verify {
+            res += u32::from(((self.raw_data[10] as u16) << 8) | self.raw_data[11] as u16);
+        }
+        res
+    }
+
+    fn options_sum(&mut self) -> u32 {
+        // SECOND VARIANT
+        // iterate over every 0..2..4..n..n*2 bytes
+        // for i in 0..self.options.len() / 2 {
+        //     res += u32::from(u16::from_be_bytes([options[i * 2], options[i * 2 + 1]]));
+        // }
+
+        self.options()
+            .chunks(2)
+            .map(|chunk| {
+                if chunk.len() == 1 {
+                    u32::from(u16::from_be_bytes([chunk[0], 0]))
+                } else {
+                    u32::from(u16::from_be_bytes([chunk[0], chunk[1]]))
+                }
+            })
+            .sum::<u32>()
     }
 
     pub fn source_address_raw(&self) -> &'a [u8] {
