@@ -16,23 +16,28 @@ fn main() -> io::Result<()> {
         let _ = iface.recv(&mut buf)?;
 
         let mut header = IPv4Header::new(&buf[4..]);
-
         println!(
-            "IP version: {}, IHL: {}, DSCP: {}, ECN: {}, bytes: {}, Ident: {:x}, DF: {}, F: {}, Fragment offset: {}, TTL: {}, Protocol: {}, Checksum: {:x}, {} -> {}",
-            header.version(),
-            header.ihl()?,
-            header.dscp(),
-            header.ecn(),
-            header.total_len(),
-            header.ident(),
-            header.dont_fragment(),
-            header.more_fragments(),
-            header.fragment_offset(),
-            header.ttl(),
-            header.protocol(),
+            "header checksum: {:x}, calculated: {:x}",
             header.ip_header_checksum(),
-            header.source_address(),
-            header.destination_address()
+            header.calculate_checksum()
         );
+
+        // println!(
+        //     "IP version: {}, IHL: {}, DSCP: {}, ECN: {}, bytes: {}, Ident: {:x}, DF: {}, F: {}, Fragment offset: {}, TTL: {}, Protocol: {}, Checksum: {:x}, {} -> {}",
+        //     header.version(),
+        //     header.ihl()?,
+        //     header.dscp(),
+        //     header.ecn(),
+        //     header.total_len(),
+        //     header.ident(),
+        //     header.dont_fragment(),
+        //     header.more_fragments(),
+        //     header.fragment_offset(),
+        //     header.ttl(),
+        //     header.protocol(),
+        //     header.ip_header_checksum(),
+        //     header.source_address(),
+        //     header.destination_address()
+        // );
     }
 }

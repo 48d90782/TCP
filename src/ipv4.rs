@@ -1,6 +1,7 @@
 use crate::errors::TCPError;
 use crate::protocol::Protocol;
 use std::net::Ipv4Addr;
+use std::ops::Shr;
 
 pub struct IPv4Header<'a> {
     // raw_data is raw protocol frame
@@ -170,6 +171,22 @@ impl<'a> IPv4Header<'a> {
     // https://tools.ietf.org/html/rfc1071
     pub fn ip_header_checksum(&mut self) -> u16 {
         u16::from_be_bytes([self.raw_data[10], self.raw_data[11]])
+    }
+
+    pub fn calculate_checksum(&mut self) -> u16 {
+        let res = u32::from(((self.raw_data[0] as u16) << 8) | self.raw_data[1] as u16)
+            + u32::from(((self.raw_data[2] as u16) << 8) | self.raw_data[3] as u16)
+            + u32::from(((self.raw_data[4] as u16) << 8) | self.raw_data[5] as u16)
+            + u32::from(((self.raw_data[6] as u16) << 8) | self.raw_data[7] as u16)
+            + u32::from(((self.raw_data[8] as u16) << 8) | self.raw_data[9] as u16)
+            + 0
+            + u32::from(((self.raw_data[12] as u16) << 8) | self.raw_data[13] as u16)
+            + u32::from(((self.raw_data[14] as u16) << 8) | self.raw_data[15] as u16)
+            + u32::from(((self.raw_data[16] as u16) << 8) | self.raw_data[17] as u16)
+            + u32::from(((self.raw_data[18] as u16) << 8) | self.raw_data[19] as u16);
+
+        let carry = (res & 0xFFFF) + (res >> 16);
+        !(((carry & 0xFFFF) + (carry >> 16)) as u16)
     }
 
     pub fn source_address_raw(&self) -> &'a [u8] {
